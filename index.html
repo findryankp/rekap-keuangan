@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Pengeluaran</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f8fafc;
+        }
+
+        .mobile-menu-btn {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .desktop-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .desktop-header>div:first-child {
+                margin-bottom: 1rem;
+            }
+
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .table-container {
+                overflow-x: auto;
+            }
+
+            .table-header {
+                min-width: 600px;
+            }
+
+            .action-buttons {
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .action-buttons button {
+                width: 100%;
+            }
+        }
+
+        .shadow-card {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .modal-content {
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .category-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+    </style>
+</head>
+
+<body class="font-poppins">
+
+    <div class="container mx-auto px-4 py-6">
+        <!-- Header -->
+        <header class="mb-8 desktop-header flex flex-col md:flex-row justify-between md:items-center gap-4 md:gap-8">
+
+            <!-- Judul -->
+            <div>
+                <h1 class="text-2xl md:text-3xl font-bold text-gray-800">Dashboard Pengeluaran</h1>
+                <p class="text-gray-600 text-sm md:text-base">
+                    Kelola dan pantau pengeluaran Anda dengan mudah
+                </p>
+            </div>
+
+            <!-- Filter & Button -->
+            <div class="flex flex-col md:flex-row items-start md:items-center gap-4">
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+                    <div>
+                        <input type="date" id="start-date"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div>
+                        <input type="date" id="end-date"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>  
+                <button onclick="showAddModal()"
+                    class="px-4 py-2 md:px-6 md:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200 font-medium flex items-center shadow-md">
+                    <i class="fas fa-plus mr-2"></i>
+                </button>
+
+            </div>
+        </header>
+
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8">
+            <div class="bg-white rounded-xl shadow-card p-4 md:p-6 border-l-4 border-blue-500">
+                <div class="flex items-center">
+                    <div class="p-2 rounded-full bg-blue-100 text-blue-600 mr-3">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-gray-500 text-sm font-medium">Total Pengeluaran</h3>
+                        <p class="text-xl md:text-2xl font-bold text-gray-800" id="total-pengeluaran">Rp 0</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-card p-4 md:p-6 border-l-4 border-green-500">
+                <div class="flex items-center">
+                    <div class="p-2 rounded-full bg-green-100 text-green-600 mr-3">
+                        <i class="fas fa-receipt"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-gray-500 text-sm font-medium">Jumlah Transaksi</h3>
+                        <p class="text-xl md:text-2xl font-bold text-gray-800" id="jumlah-transaksi">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-card p-4 md:p-6 border-l-4 border-purple-500">
+                <div class="flex items-center">
+                    <div class="p-2 rounded-full bg-purple-100 text-purple-600 mr-3">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-gray-500 text-sm font-medium">Rata-rata per Hari</h3>
+                        <p class="text-xl md:text-2xl font-bold text-gray-800" id="rata-rata">Rp 0</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Table -->
+        <div class="bg-white rounded-xl shadow-card overflow-hidden">
+            <div class="px-4 md:px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg md:text-xl font-semibold text-gray-800">Data Pengeluaran</h2>
+            </div>
+            <div class="table-container">
+                <table class="min-w-full divide-y divide-gray-200 table-header">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th
+                                class="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Tanggal
+                            </th>
+                            <th
+                                class="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Nama
+                            </th>
+                            <th
+                                class="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Keperluan
+                            </th>
+                            <th
+                                class="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Kategori
+                            </th>
+                            <th
+                                class="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Jumlah
+                            </th>
+                            <th
+                                class="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Aksi
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="data-table" class="bg-white divide-y divide-gray-200">
+                        <!-- Data akan diisi oleh JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="loading" class="hidden p-8 text-center">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                <p class="mt-2 text-gray-600">Memuat data...</p>
+            </div>
+            <div id="no-data" class="hidden p-8 text-center">
+                <i class="fas fa-inbox text-gray-400 text-4xl mb-2"></i>
+                <p class="text-gray-600">Tidak ada data yang ditemukan</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal untuk Tambah/Edit Data -->
+    <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50 p-4">
+        <div class="bg-white rounded-xl shadow-lg w-full max-w-md modal-content">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-xl font-semibold text-gray-800" id="modal-title">Tambah Pengeluaran</h3>
+            </div>
+            <form id="pengeluaran-form" class="p-6">
+                <input type="hidden" id="edit-id">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nama</label>
+                    <select id="form-nama"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required>
+                        <option value="">Pilih Nama</option>
+                        <option value="Yayan">Yayan</option>
+                        <option value="Dian">Dian</option>
+                        <option value="Kira">Kira</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Keperluan</label>
+                    <input type="text" id="form-keperluan"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
+                    <select id="form-kategori"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required>
+                        <option value="">Pilih Kategori</option>
+                        <option value="Recash">Recash</option>
+                        <option value="Hutang">Hutang</option>
+                        <option value="Makan">Makan</option>
+                        <option value="Kebutuhan Makan">Kebutuhan Makan</option>
+                        <option value="BBM">BBM</option>
+                        <option value="Tabungan">Tabungan</option>
+                        <option value="Obat">Obat</option>
+                        <option value="E-Toll">E-Toll</option>
+                        <option value="Lain-lain">Lain-lain</option>
+                        <option value="Listrik">Listrik</option>
+                        <option value="Wifi dan Internet">Wifi dan Internet</option>
+                    </select>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Jumlah (Rp)</label>
+                    <input type="number" id="form-amount"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        min="0" step="0.01" required>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" id="cancel-btn"
+                        class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition duration-200 font-medium">
+                        Batal
+                    </button>
+                    <button type="submit"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200 font-medium">
+                        Simpan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            // Set default date range to current month
+            const today = new Date();
+            const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+            const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+            $('#start-date').val(formatDate(firstDay));
+            $('#end-date').val(formatDate(lastDay));
+
+            // Toggle filter visibility on mobile
+            $('#toggle-filter').click(function () {
+                $('#filter-content').slideToggle();
+            });
+
+            // Load initial data
+            loadData();
+
+            // Filter button click event
+            $('#filter-btn').click(function () {
+                loadData();
+            });
+
+            // Modal events
+            $('#cancel-btn').click(function () {
+                $('#modal').addClass('hidden');
+            });
+
+            // Form submission
+            $('#pengeluaran-form').submit(function (e) {
+                e.preventDefault();
+                savePengeluaran();
+            });
+
+            // Close modal when clicking outside
+            $('#modal').click(function (e) {
+                if (e.target === this) {
+                    $(this).addClass('hidden');
+                }
+            });
+        });
+
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            }).format(amount);
+        }
+
+        function loadData() {
+            const startDate = $('#start-date').val();
+            const endDate = $('#end-date').val();
+            const kategori = $('#kategori').val();
+            const nama = $('#nama').val();
+
+            // Show loading
+            $('#loading').removeClass('hidden');
+            $('#data-table').addClass('hidden');
+            $('#no-data').addClass('hidden');
+
+            // Build URL with query parameters
+            let url = '/pengeluaran/filter?start=' + startDate + '&end=' + endDate;
+
+            // Fetch data from API
+            $.ajax({
+                url: url,
+                method: 'GET',
+                success: function (data) {
+                    // Hide loading
+                    $('#loading').addClass('hidden');
+
+                    // Apply additional filters
+                    let filteredData = data;
+                    if (kategori) {
+                        filteredData = filteredData.filter(item => item.kategori === kategori);
+                    }
+                    if (nama) {
+                        filteredData = filteredData.filter(item => item.nama === nama);
+                    }
+
+                    // Update summary
+                    updateSummary(filteredData);
+
+                    // Update table
+                    if (filteredData.length > 0) {
+                        renderTable(filteredData);
+                        $('#data-table').removeClass('hidden');
+                    } else {
+                        $('#no-data').removeClass('hidden');
+                    }
+                },
+                error: function () {
+                    $('#loading').addClass('hidden');
+                    $('#no-data').removeClass('hidden');
+                    alert('Terjadi kesalahan saat memuat data');
+                }
+            });
+        }
+
+        function updateSummary(data) {
+            const total = data.reduce((sum, item) => sum + item.amount, 0);
+            const count = data.length;
+
+            // Calculate average per day
+            const startDate = new Date($('#start-date').val());
+            const endDate = new Date($('#end-date').val());
+            const days = Math.max(1, Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)));
+            const average = total / days;
+
+            $('#total-pengeluaran').text(formatCurrency(total));
+            $('#jumlah-transaksi').text(count);
+            $('#rata-rata').text(formatCurrency(average));
+        }
+
+        function renderTable(data) {
+            const tableBody = $('#data-table');
+            tableBody.empty();
+
+            data.forEach(item => {
+                const date = new Date(item.created_at);
+                const formattedDate = date.toLocaleDateString('id-ID', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                });
+
+                const row = `
+                    <tr>
+                        <td class="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-gray-800">${formattedDate}</td>
+                        <td class="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-gray-800">${item.nama}</td>
+                        <td class="px-4 md:px-6 py-4 text-sm text-gray-800">${item.keperluan}</td>
+                        <td class="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                            <span class="category-badge ${getCategoryColor(item.kategori)}">${item.kategori}</span>
+                        </td>
+                        <td class="px-4 md:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">${formatCurrency(item.amount)}</td>
+                        <td class="px-4 md:px-6 py-4 whitespace-nowrap text-sm font-medium action-buttons">
+                            <button onclick="editPengeluaran(${item.ID})" class="text-blue-600 hover:text-blue-900 mr-2 md:mr-3">
+                                <i class="fas fa-edit mr-1"></i>
+                                <span class="hidden md:inline">Edit</span>
+                            </button>
+                            <button onclick="deletePengeluaran(${item.ID})" class="text-red-600 hover:text-red-900">
+                                <i class="fas fa-trash-alt mr-1"></i>
+                                <span class="hidden md:inline">Hapus</span>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+
+                tableBody.append(row);
+            });
+        }
+
+        function getCategoryColor(category) {
+            const colors = {
+                'Recash': 'bg-purple-100 text-purple-800',
+                'Hutang': 'bg-red-100 text-red-800',
+                'Makan': 'bg-green-100 text-green-800',
+                'Kebutuhan Makan': 'bg-green-100 text-green-800',
+                'BBM': 'bg-yellow-100 text-yellow-800',
+                'Tabungan': 'bg-blue-100 text-blue-800',
+                'Obat': 'bg-pink-100 text-pink-800',
+                'E-Toll': 'bg-indigo-100 text-indigo-800',
+                'Lain-lain': 'bg-gray-100 text-gray-800',
+                'Listrik': 'bg-orange-100 text-orange-800',
+                'Wifi dan Internet': 'bg-teal-100 text-teal-800'
+            };
+
+            return colors[category] || 'bg-gray-100 text-gray-800';
+        }
+
+        function showAddModal() {
+            $('#modal-title').text('Tambah Pengeluaran');
+            $('#edit-id').val('');
+            $('#form-nama').val('');
+            $('#form-keperluan').val('');
+            $('#form-kategori').val('');
+            $('#form-amount').val('');
+            $('#modal').removeClass('hidden');
+        }
+
+        function editPengeluaran(id) {
+            $.ajax({
+                url: '/pengeluaran/' + id,
+                method: 'GET',
+                success: function (data) {
+                    $('#modal-title').text('Edit Pengeluaran');
+                    $('#edit-id').val(data.id);
+                    $('#form-nama').val(data.nama);
+                    $('#form-keperluan').val(data.keperluan);
+                    $('#form-kategori').val(data.kategori);
+                    $('#form-amount').val(data.amount);
+                    $('#modal').removeClass('hidden');
+                },
+                error: function () {
+                    alert('Terjadi kesalahan saat memuat data pengeluaran');
+                }
+            });
+        }
+
+        function savePengeluaran() {
+            const id = $('#edit-id').val();
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? '/pengeluaran/' + id : '/pengeluaran';
+
+            const data = {
+                nama: $('#form-nama').val(),
+                keperluan: $('#form-keperluan').val(),
+                kategori: $('#form-kategori').val(),
+                amount: parseFloat($('#form-amount').val())
+            };
+
+            $.ajax({
+                url: url,
+                method: method,
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function () {
+                    $('#modal').addClass('hidden');
+                    loadData();
+                },
+                error: function () {
+                    alert('Terjadi kesalahan saat menyimpan data');
+                }
+            });
+        }
+
+        function deletePengeluaran(id) {
+            if (confirm('Apakah Anda yakin ingin menghapus data ini?')) {
+                $.ajax({
+                    url: '/pengeluaran/' + id,
+                    method: 'DELETE',
+                    success: function () {
+                        loadData();
+                    },
+                    error: function () {
+                        alert('Terjadi kesalahan saat menghapus data');
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+
+</html>
