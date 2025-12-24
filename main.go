@@ -173,7 +173,7 @@ func filterByDate(c echo.Context) error {
 		query = query.Where("tipe = ?", tipe)
 	}
 
-	query.Order("parsed_date asc").Find(&result)
+	query.Order("parsed_date desc").Find(&result)
 
 	return c.JSON(http.StatusOK, result)
 }
