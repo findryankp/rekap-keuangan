@@ -22,6 +22,16 @@ type Transaction struct {
 	ParsedDate time.Time `json:"parsed_date"`
 }
 
+type Category struct {
+	gorm.Model
+	Name string `json:"name"`
+}
+
+type Person struct {
+	gorm.Model
+	Name string `json:"name"`
+}
+
 var db *gorm.DB
 
 func main() {
@@ -33,7 +43,10 @@ func main() {
 	}
 
 	// Auto migrate
-	db.AutoMigrate(&Transaction{})
+	db.AutoMigrate(&Transaction{}, &Category{}, &Person{})
+
+	// Seed initial data
+	seedData()
 
 	e := echo.New()
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
@@ -46,6 +59,7 @@ func main() {
 
 	// Transaction routes (untuk pemasukan dan pengeluaran)
 	e.POST("/transactions", createTransaction)
+	// getTransaction now sorts by parsed_date desc, created_at desc
 	e.GET("/transactions", getTransaction)
 	e.GET("/transactions/:id", getTransactionByID)
 	e.PUT("/transactions/:id", updateTransaction)
@@ -55,6 +69,15 @@ func main() {
 	// Rute khusus untuk laporan
 	e.GET("/transactions/resume", getResume)
 	e.GET("/transactions/resume/monthly", getResumeMonthly)
+
+	// Master Data Routes
+	e.GET("/categories", getCategories)
+	e.POST("/categories", createCategory)
+	e.DELETE("/categories/:id", deleteCategory)
+
+	e.GET("/persons", getPersons)
+	e.POST("/persons", createPerson)
+	e.DELETE("/persons/:id", deletePerson)
 
 	e.Logger.Fatal(e.Start(":8080"))
 }
@@ -70,7 +93,7 @@ func createTransaction(c echo.Context) error {
 	layout := "2006-01-02"
 	parsedDate, err := time.Parse(layout, transaksi.Tanggal)
 	if err != nil {
-		panic(err)
+		return c.JSON(http.StatusBadRequest, echo.Map{"message": "Format tanggal salah"})
 	}
 
 	transaksi.ParsedDate = parsedDate
@@ -94,7 +117,8 @@ func createTransaction(c echo.Context) error {
 // READ ALL transaksi
 func getTransaction(c echo.Context) error {
 	var list []Transaction
-	db.Order("tanggal desc").Find(&list)
+	// Sort by parsed_date desc AND created_at desc (newest entry first)
+	db.Order("parsed_date desc, created_at desc").Find(&list)
 	return c.JSON(http.StatusOK, list)
 }
 
@@ -123,6 +147,15 @@ func updateTransaction(c echo.Context) error {
 
 	if err := c.Bind(&t); err != nil {
 		return c.JSON(http.StatusBadRequest, err)
+	}
+
+	// Update parsed date if tanggal changed
+	if t.Tanggal != "" {
+		layout := "2006-01-02"
+		parsedDate, err := time.Parse(layout, t.Tanggal)
+		if err == nil {
+			t.ParsedDate = parsedDate
+		}
 	}
 
 	db.Save(&t)
@@ -173,7 +206,8 @@ func filterByDate(c echo.Context) error {
 		query = query.Where("tipe = ?", tipe)
 	}
 
-	query.Order("parsed_date desc").Find(&result)
+	// Sort by parsed_date desc AND created_at desc
+	query.Order("parsed_date desc, created_at desc").Find(&result)
 
 	return c.JSON(http.StatusOK, result)
 }
@@ -248,4 +282,67 @@ func getResumeMonthly(c echo.Context) error {
 		"start_date":        startDate.Format("2006-01-02"),
 		"end_date":          endDate.Format("2006-01-02"),
 	})
+}
+
+// --- Master Data Handlers ---
+
+func getCategories(c echo.Context) error {
+	var list []Category
+	db.Find(&list)
+	return c.JSON(http.StatusOK, list)
+}
+
+func createCategory(c echo.Context) error {
+	cat := new(Category)
+	if err := c.Bind(cat); err != nil {
+		return c.JSON(http.StatusBadRequest, err)
+	}
+	db.Create(cat)
+	return c.JSON(http.StatusOK, cat)
+}
+
+func deleteCategory(c echo.Context) error {
+	id := c.Param("id")
+	db.Delete(&Category{}, id)
+	return c.JSON(http.StatusOK, echo.Map{"message": "Kategori dihapus"})
+}
+
+func getPersons(c echo.Context) error {
+	var list []Person
+	db.Find(&list)
+	return c.JSON(http.StatusOK, list)
+}
+
+func createPerson(c echo.Context) error {
+	p := new(Person)
+	if err := c.Bind(p); err != nil {
+		return c.JSON(http.StatusBadRequest, err)
+	}
+	db.Create(p)
+	return c.JSON(http.StatusOK, p)
+}
+
+func deletePerson(c echo.Context) error {
+	id := c.Param("id")
+	db.Delete(&Person{}, id)
+	return c.JSON(http.StatusOK, echo.Map{"message": "Penanggung Jawab dihapus"})
+}
+
+func seedData() {
+	var count int64
+	db.Model(&Category{}).Count(&count)
+	if count == 0 {
+		cats := []string{"Gaji", "Bonus", "Freelance", "Investasi", "Recash", "Hutang", "Makan", "Kebutuhan Makan", "BBM", "Tabungan", "Obat", "E-Toll", "Listrik", "Wifi dan Internet", "Lain-lain"}
+		for _, n := range cats {
+			db.Create(&Category{Name: n})
+		}
+	}
+
+	db.Model(&Person{}).Count(&count)
+	if count == 0 {
+		persons := []string{"Yayan", "Dian", "Kira"}
+		for _, n := range persons {
+			db.Create(&Person{Name: n})
+		}
+	}
 }

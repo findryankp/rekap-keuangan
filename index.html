@@ -124,7 +124,7 @@
         >
           <div>
             <h1
-              class="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600"
+              class="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600"
             >
               Dashboard Keuangan
             </h1>
@@ -156,6 +156,13 @@
                 class="flex-1 sm:flex-none px-4 py-3 bg-white text-gray-700 border border-gray-200 rounded-xl hover:bg-gray-50 hover:text-indigo-600 transition-colors duration-200 font-medium shadow-sm"
               >
                 <i class="fas fa-calendar-alt"></i>
+              </button>
+              <button
+                onclick="showManageModal()"
+                class="flex-1 sm:flex-none px-4 py-3 bg-white text-gray-700 border border-gray-200 rounded-xl hover:bg-gray-50 hover:text-indigo-600 transition-colors duration-200 font-medium shadow-sm"
+                title="Kelola Data"
+              >
+                <i class="fas fa-cog"></i>
               </button>
             </div>
           </div>
@@ -243,7 +250,7 @@
               Pemasukan
             </p>
             <h3
-              class="text-2xl font-bold mt-1 tracking-tight"
+              class="text-xl font-bold mt-1 tracking-tight"
               id="total-pemasukan"
             >
               Rp 0
@@ -268,7 +275,7 @@
               Pengeluaran
             </p>
             <h3
-              class="text-2xl font-bold mt-1 tracking-tight"
+              class="text-xl font-bold mt-1 tracking-tight"
               id="total-pengeluaran"
             >
               Rp 0
@@ -296,7 +303,7 @@
             <p class="text-sm font-medium text-indigo-50 opacity-90">
               Sisa Saldo
             </p>
-            <h3 class="text-2xl font-bold mt-1 tracking-tight" id="saldo">
+            <h3 class="text-xl font-bold mt-1 tracking-tight" id="saldo">
               Rp 0
             </h3>
           </div>
@@ -319,7 +326,7 @@
               Total Transaksi
             </p>
             <h3
-              class="text-2xl font-bold mt-1 tracking-tight"
+              class="text-xl font-bold mt-1 tracking-tight"
               id="jumlah-transaksi"
             >
               0
@@ -614,9 +621,7 @@
                   class="w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-3 px-4 bg-gray-50"
                 >
                   <option value="">Pilih Nama</option>
-                  <option value="Yayan">Yayan</option>
-                  <option value="Dian">Dian</option>
-                  <option value="Kira">Kira</option>
+                  <!-- Populated by JS -->
                 </select>
               </div>
 
@@ -631,21 +636,7 @@
                     class="w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-3 px-4 bg-gray-50"
                   >
                     <option value="">Pilih Kategori</option>
-                    <option value="Gaji">Gaji</option>
-                    <option value="Bonus">Bonus</option>
-                    <option value="Freelance">Freelance</option>
-                    <option value="Investasi">Investasi</option>
-                    <option value="Recash">Recash</option>
-                    <option value="Hutang">Hutang</option>
-                    <option value="Makan">Makan</option>
-                    <option value="Kebutuhan Makan">Kebutuhan Makan</option>
-                    <option value="BBM">BBM</option>
-                    <option value="Tabungan">Tabungan</option>
-                    <option value="Obat">Obat</option>
-                    <option value="E-Toll">E-Toll</option>
-                    <option value="Listrik">Listrik</option>
-                    <option value="Wifi dan Internet">Wifi dan Internet</option>
-                    <option value="Lain-lain">Lain-lain</option>
+                    <!-- Populated by JS -->
                   </select>
                 </div>
                 <div>
@@ -705,6 +696,107 @@
       </div>
     </div>
 
+    <!-- Manage Master Data Modal -->
+    <div
+      id="manage-modal"
+      class="fixed inset-0 z-50 overflow-y-auto hidden"
+      aria-labelledby="manage-modal-title"
+      role="dialog"
+      aria-modal="true"
+    >
+      <div
+        class="fixed inset-0 bg-gray-900/60 transition-opacity backdrop-blur-sm"
+      ></div>
+      <div
+        class="flex min-h-screen items-center justify-center p-4 text-center sm:p-0"
+      >
+        <div
+          class="relative transform overflow-hidden rounded-3xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-md border border-gray-100"
+        >
+          <div class="bg-white px-6 py-6 sm:p-8">
+            <div class="flex items-center justify-between mb-6">
+              <h3
+                class="text-xl font-bold leading-6 text-gray-900"
+                id="manage-modal-title"
+              >
+                Kelola Data
+              </h3>
+              <button
+                onclick="closeManageModal()"
+                type="button"
+                class="text-gray-400 hover:text-gray-500"
+              >
+                <i class="fas fa-times text-xl"></i>
+              </button>
+            </div>
+
+            <!-- Tabs -->
+            <div class="flex border-b border-gray-200 mb-4">
+              <button
+                class="flex-1 py-2 px-4 text-center text-sm font-medium text-indigo-600 border-b-2 border-indigo-600 focus:outline-none"
+                id="tab-kategori"
+                onclick="switchTab('kategori')"
+              >
+                Kategori
+              </button>
+              <button
+                class="flex-1 py-2 px-4 text-center text-sm font-medium text-gray-500 hover:text-gray-700 focus:outline-none"
+                id="tab-person"
+                onclick="switchTab('person')"
+              >
+                Penanggung Jawab
+              </button>
+            </div>
+
+            <!-- Content Kategori -->
+            <div id="content-kategori">
+              <div class="flex gap-2 mb-4">
+                <input
+                  type="text"
+                  id="new-kategori"
+                  placeholder="Nama Kategori Baru"
+                  class="flex-1 rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-3 py-2 text-sm bg-gray-50"
+                  onkeypress="handleEnter(event, addCategory)"
+                />
+                <button
+                  onclick="addCategory()"
+                  class="bg-indigo-600 text-white rounded-xl px-4 py-2 hover:bg-indigo-700 transition"
+                >
+                  <i class="fas fa-plus"></i>
+                </button>
+              </div>
+              <ul class="divide-y divide-gray-100 max-h-60 overflow-y-auto" id="list-kategori">
+                <!-- Populated by JS -->
+              </ul>
+            </div>
+
+            <!-- Content Person -->
+            <div id="content-person" class="hidden">
+              <div class="flex gap-2 mb-4">
+                <input
+                  type="text"
+                  id="new-person"
+                  placeholder="Nama Penanggung Jawab Baru"
+                  class="flex-1 rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-3 py-2 text-sm bg-gray-50"
+                  onkeypress="handleEnter(event, addPerson)"
+                />
+                <button
+                  onclick="addPerson()"
+                  class="bg-indigo-600 text-white rounded-xl px-4 py-2 hover:bg-indigo-700 transition"
+                >
+                  <i class="fas fa-plus"></i>
+                </button>
+              </div>
+              <ul class="divide-y divide-gray-100 max-h-60 overflow-y-auto" id="list-person">
+                 <!-- Populated by JS -->
+              </ul>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script>
       // Chart instances
       let tipePieChart = null;
@@ -723,6 +815,7 @@
         $("#form-tanggal").val(formatDate(today));
 
         // Load initial data
+        loadMasterData(); // Fetch categories and persons first
         loadData();
 
         // Date change events
@@ -1492,6 +1585,146 @@
           document.body.removeChild(link);
         }
       }
-    </script>
+        // --- Master Data Functions ---
+        
+        function showManageModal() {
+            $("#manage-modal").removeClass("hidden");
+            loadMasterData(); // Refresh data
+        }
+
+        function closeManageModal() {
+            $("#manage-modal").addClass("hidden");
+            loadMasterData(); // Refresh selects in main form
+        }
+
+        function switchTab(tab) {
+            if(tab === 'kategori') {
+                $("#tab-kategori").addClass("text-indigo-600 border-b-2 border-indigo-600").removeClass("text-gray-500");
+                $("#tab-person").removeClass("text-indigo-600 border-b-2 border-indigo-600").addClass("text-gray-500");
+                $("#content-kategori").removeClass("hidden");
+                $("#content-person").addClass("hidden");
+            } else {
+                $("#tab-person").addClass("text-indigo-600 border-b-2 border-indigo-600").removeClass("text-gray-500");
+                $("#tab-kategori").removeClass("text-indigo-600 border-b-2 border-indigo-600").addClass("text-gray-500");
+                $("#content-person").removeClass("hidden");
+                $("#content-kategori").addClass("hidden");
+            }
+        }
+
+        function handleEnter(e, callback) {
+            if(e.key === "Enter") callback();
+        }
+
+        function loadMasterData() {
+            // Categories
+            $.get("/categories", function(data) {
+                const select = $("#form-kategori");
+                const currentVal = select.val();
+                select.empty().append('<option value="">Pilih Kategori</option>');
+                
+                const list = $("#list-kategori");
+                list.empty();
+
+                data.forEach(item => {
+                    // Populate Select
+                    select.append(`<option value="${item.name}">${item.name}</option>`);
+                    
+                    // Populate List
+                    list.append(`
+                        <li class="py-3 flex justify-between items-center">
+                            <span class="text-sm font-medium text-gray-700">${item.name}</span>
+                            <button onclick="deleteCategory(${item.ID})" class="text-red-400 hover:text-red-600 p-1">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </li>
+                    `);
+                });
+                
+                if(currentVal) select.val(currentVal);
+            });
+
+            // Persons
+            $.get("/persons", function(data) {
+                const select = $("#form-nama");
+                const currentVal = select.val();
+                select.empty().append('<option value="">Pilih Nama</option>');
+                
+                const list = $("#list-person");
+                list.empty();
+
+                data.forEach(item => {
+                    // Populate Select
+                    select.append(`<option value="${item.name}">${item.name}</option>`);
+                    
+                    // Populate List
+                    list.append(`
+                        <li class="py-3 flex justify-between items-center">
+                            <span class="text-sm font-medium text-gray-700">${item.name}</span>
+                            <button onclick="deletePerson(${item.ID})" class="text-red-400 hover:text-red-600 p-1">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </li>
+                    `);
+                });
+
+                if(currentVal) select.val(currentVal);
+            });
+        }
+
+        function addCategory() {
+            const name = $("#new-kategori").val().trim();
+            if(!name) return;
+            
+            $.ajax({
+                url: "/categories",
+                method: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({ name: name }),
+                success: function() {
+                    $("#new-kategori").val("");
+                    loadMasterData();
+                }
+            });
+        }
+
+        function deleteCategory(id) {
+            if(!confirm("Hapus kategori ini?")) return;
+            $.ajax({
+                url: `/categories/${id}`,
+                method: "DELETE",
+                success: function() {
+                    loadMasterData();
+                }
+            });
+        }
+
+        function addPerson() {
+            const name = $("#new-person").val().trim();
+            if(!name) return;
+            
+            $.ajax({
+                url: "/persons",
+                method: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({ name: name }),
+                success: function() {
+                    $("#new-person").val("");
+                    loadMasterData();
+                }
+            });
+        }
+
+        function deletePerson(id) {
+             if(!confirm("Hapus penanggung jawab ini?")) return;
+            $.ajax({
+                url: `/persons/${id}`,
+                method: "DELETE",
+                success: function() {
+                    loadMasterData();
+                }
+            });
+        }
+
+      </script>
   </body>
 </html>

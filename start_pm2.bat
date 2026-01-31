@@ -1,0 +1,3 @@
+@echo off
+echo Starting Rekap Keuangan with PM2...
+pm2 start go --run . --name="golang-rekap"
