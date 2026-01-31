@@ -153,12 +153,16 @@ func updateTransaction(c echo.Context) error {
 	if t.Tanggal != "" {
 		layout := "2006-01-02"
 		parsedDate, err := time.Parse(layout, t.Tanggal)
-		if err == nil {
-			t.ParsedDate = parsedDate
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, echo.Map{"message": "Format tanggal salah (YYYY-MM-DD)"})
 		}
+		t.ParsedDate = parsedDate
 	}
 
-	db.Save(&t)
+	// Explicitly save the updated fields including ParsedDate
+	if err := db.Save(&t).Error; err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"message": "Gagal menyimpan data"})
+	}
 	return c.JSON(http.StatusOK, t)
 }
 
